@@ -21,11 +21,21 @@ class BgnScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 380;
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 76,
         title: title == null
             ? const BgnLogo()
+            : isCompact
+            ? Text(
+                title!,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              )
             : Row(
                 children: [
                   const BgnLogo(compact: true),
@@ -42,11 +52,12 @@ class BgnScaffold extends StatelessWidget {
                 ],
               ),
         actions: [
-          IconButton(
-            tooltip: 'Add lead',
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.addLead),
-            icon: const Icon(Icons.mark_email_unread),
-          ),
+          if (!isCompact)
+            IconButton(
+              tooltip: 'Add lead',
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.addLead),
+              icon: const Icon(Icons.mark_email_unread),
+            ),
           IconButton(
             tooltip: 'Profile',
             onPressed: () => Navigator.pushNamed(context, AppRoutes.profile),

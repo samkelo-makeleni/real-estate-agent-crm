@@ -58,7 +58,7 @@ void main() {
       find.widgetWithText(TextFormField, 'Password'),
       'demo123',
     );
-    await tester.tap(find.byIcon(Icons.login).last);
+    await tester.tap(find.widgetWithText(FilledButton, 'Agent sign in'));
     await tester.pumpAndSettle();
 
     expect(find.text('Agent Dashboard'), findsOneWidget);
