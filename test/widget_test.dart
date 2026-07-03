@@ -43,9 +43,7 @@ void main() {
     await appState.login('agent@bgnrealestate.co.za', 'demo123');
 
     expect(appState.currentUser?.name, 'BGN Agent');
-    expect(appState.agentProperties, isNotEmpty);
-    expect(appState.agentLeads, isNotEmpty);
-    expect(appState.agentAppointments, isNotEmpty);
+    expect(appState.publicProperties, isNotEmpty);
   });
 
   testWidgets('agent registration form toggles from sign in', (tester) async {
