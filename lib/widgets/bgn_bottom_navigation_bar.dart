@@ -22,6 +22,9 @@ class BgnBottomNavigationBar extends StatelessWidget {
 
     return NavigationBar(
       selectedIndex: currentIndex,
+      labelBehavior: isCompact
+          ? NavigationDestinationLabelBehavior.alwaysHide
+          : NavigationDestinationLabelBehavior.alwaysShow,
       onDestinationSelected: (index) {
         final route = _routes[index];
         if (route == currentRoute) return;

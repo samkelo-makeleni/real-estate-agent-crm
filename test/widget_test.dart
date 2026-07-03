@@ -50,6 +50,14 @@ void main() {
 
     expect(find.text('Agent sign in'), findsOneWidget);
 
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'agent@bgnrealestate.co.za',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      'demo123',
+    );
     await tester.tap(find.byIcon(Icons.login).last);
     await tester.pumpAndSettle();
 
