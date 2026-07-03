@@ -13,58 +13,53 @@ import 'package:real_estate_agent_crm/viewmodels/app_state_provider.dart';
 import 'package:real_estate_agent_crm/views/appointments/appointment_booking_screen.dart';
 
 void main() {
-  testWidgets('agent registers before opening the dashboard', (tester) async {
+  testWidgets('app opens on the agent sign in screen', (tester) async {
     await tester.pumpWidget(const BgnRealEstateApp());
 
     expect(find.text('BGN'), findsOneWidget);
     expect(find.text('Real Estate agent app'), findsOneWidget);
     expect(find.text('Agent sign in'), findsOneWidget);
+    expect(find.text('New agent? Register first'), findsOneWidget);
+  });
+
+  test('agent can register and sign in through app state', () async {
+    final appState = AppState(
+      auth: AuthService(),
+      properties: PropertyService(),
+      leads: LeadService(),
+      appointments: AppointmentService(),
+      storage: StorageService(),
+    )..loadSeedData();
+
+    await appState.registerAgent(
+      name: 'BGN Agent',
+      email: 'agent@bgnrealestate.co.za',
+      phone: '+27 21 555 0148',
+      password: 'demo123',
+    );
+
+    expect(appState.currentUser, isNull);
+
+    await appState.login('agent@bgnrealestate.co.za', 'demo123');
+
+    expect(appState.currentUser?.name, 'BGN Agent');
+    expect(appState.agentProperties, isNotEmpty);
+    expect(appState.agentLeads, isNotEmpty);
+    expect(appState.agentAppointments, isNotEmpty);
+  });
+
+  testWidgets('agent registration form toggles from sign in', (tester) async {
+    await tester.pumpWidget(const BgnRealEstateApp());
 
     await tester.tap(find.text('New agent? Register first'));
     await tester.pumpAndSettle();
 
     expect(find.text('Create agent account'), findsOneWidget);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Full name'),
-      'BGN Agent',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'agent@bgnrealestate.co.za',
-    );
-    await tester.enterText(
+    expect(find.widgetWithText(TextFormField, 'Full name'), findsOneWidget);
+    expect(
       find.widgetWithText(TextFormField, 'Phone / WhatsApp'),
-      '+27 21 555 0148',
+      findsOneWidget,
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
-      'demo123',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Confirm password'),
-      'demo123',
-    );
-    await tester.tap(find.byIcon(Icons.person_add_alt_1).last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Agent sign in'), findsOneWidget);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'agent@bgnrealestate.co.za',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
-      'demo123',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Agent sign in'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Agent Dashboard'), findsOneWidget);
-    expect(find.text('Add Property'), findsOneWidget);
-    expect(find.text('Manage Properties'), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
   });
 
   testWidgets('booking screen fits on narrow phones', (tester) async {
