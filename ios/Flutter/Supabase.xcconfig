@@ -1,0 +1,3 @@
+// Public Supabase client configuration for Xcode builds.
+// These are publishable client values, not service-role secrets.
+DART_DEFINES=$(DART_DEFINES),U1VQQUJBU0VfVVJMPWh0dHBzOi8vZm5scWVtb2Vxc3FscWZxaWd3eWsuc3VwYWJhc2UuY28=,U1VQQUJBU0VfUFVCTElTSEFCTEVfS0VZPXNiX3B1Ymxpc2hhYmxlX05ZSVBzaUxfcGdEeTJNMXp4RTl6cGdfa0I2THE4QnM=

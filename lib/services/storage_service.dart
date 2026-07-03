@@ -1,8 +1,11 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../core/config/supabase_config.dart';
 
 class StorageService {
+  static const _propertyMediaBucket = 'property-media';
+
   Future<List<String>> uploadPropertyImages(List<PlatformFile> files) async {
     if (files.isEmpty) {
       return ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6'];
@@ -11,7 +14,7 @@ class StorageService {
     return _uploadPropertyMedia(
       files: files,
       folder: 'property-images',
-      fallbackPrefix: 'firebase-storage://property-images',
+      fallbackPrefix: 'local-property-image',
     );
   }
 
@@ -21,7 +24,7 @@ class StorageService {
     return _uploadPropertyMedia(
       files: files,
       folder: 'property-videos',
-      fallbackPrefix: 'firebase-storage://property-videos',
+      fallbackPrefix: 'local-property-video',
     );
   }
 
@@ -30,23 +33,36 @@ class StorageService {
     required String folder,
     required String fallbackPrefix,
   }) async {
-    if (Firebase.apps.isEmpty) {
+    final client = SupabaseConfig.client;
+    if (client == null) {
       return files
-          .map((file) => '$fallbackPrefix/${file.name.hashCode}')
+          .map((file) => '$fallbackPrefix://${_safeFileName(file.name)}')
           .toList();
     }
 
-    final storage = FirebaseStorage.instance;
+    final userId = client.auth.currentUser?.id;
+    if (userId == null) {
+      throw const StorageException(
+        'Sign in before uploading property media.',
+        statusCode: '401',
+        error: 'Unauthorized',
+      );
+    }
+
+    final storage = client.storage.from(_propertyMediaBucket);
     final urls = <String>[];
 
     for (final file in files) {
       final bytes = await file.readAsBytes();
       final path =
-          '$folder/${DateTime.now().microsecondsSinceEpoch}_'
+          '$userId/$folder/${DateTime.now().microsecondsSinceEpoch}_'
           '${_safeFileName(file.name)}';
-      final metadata = SettableMetadata(contentType: _contentType(file.name));
-      final snapshot = await storage.ref(path).putData(bytes, metadata);
-      urls.add(await snapshot.ref.getDownloadURL());
+      await storage.uploadBinary(
+        path,
+        bytes,
+        fileOptions: FileOptions(contentType: _contentType(file.name)),
+      );
+      urls.add(storage.getPublicUrl(path));
     }
 
     return urls;

@@ -1,6 +1,6 @@
 {
-    "name": "real_estate_agent_crm",
-    "short_name": "real_estate_agent_crm",
+    "name": "BGN Real Estate",
+    "short_name": "BGN",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -53,47 +53,6 @@ def repair_grpc_private_headers
   end
 end
 
-
-def strip_firebase_firestore_internal_weak_framework_flags(value)
-  return nil unless value
-
-  if value.is_a?(Array)
-    stripped = []
-    skip_next = false
-
-    value.each_with_index do |entry, index|
-      if skip_next
-        skip_next = false
-        next
-      end
-
-      if entry.to_s == '-weak_framework'
-        skip_next = true if value[index + 1].to_s.delete('"') == 'FirebaseFirestoreInternal'
-        stripped << entry unless skip_next
-      elsif entry.to_s.include?('-weak_framework') && entry.to_s.include?('FirebaseFirestoreInternal')
-        next
-      else
-        stripped << entry
-      end
-    end
-
-    stripped
-  elsif value.is_a?(String)
-    value.gsub(/\s*-weak_framework\s+"?FirebaseFirestoreInternal"?/, '')
-  else
-    value
-  end
-end
-
-def repair_firebase_firestore_internal_xcconfigs
-  pods_root = File.join(File.dirname(__FILE__), 'Pods')
-  Dir.glob(File.join(pods_root, 'Target Support Files', '**', '*.xcconfig')).each do |path|
-    contents = File.read(path)
-    repaired = strip_firebase_firestore_internal_weak_framework_flags(contents)
-    File.write(path, repaired) if repaired && repaired != contents
-  end
-end
-
 target 'Runner' do
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -110,17 +69,12 @@ post_install do |installer|
         config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
         config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386 x86_64'
       end
-
-      flags = strip_firebase_firestore_internal_weak_framework_flags(config.build_settings['OTHER_LDFLAGS'])
-      config.build_settings['OTHER_LDFLAGS'] = flags unless flags.nil?
     end
   end
 
   repair_grpc_private_headers
-  repair_firebase_firestore_internal_xcconfigs
 end
 
 post_integrate do |_installer|
   repair_grpc_private_headers
-  repair_firebase_firestore_internal_xcconfigs
 end

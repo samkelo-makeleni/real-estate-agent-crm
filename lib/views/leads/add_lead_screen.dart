@@ -38,6 +38,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   @override
   Widget build(BuildContext context) {
     final app = AppStateProvider.of(context);
+    final currentUser = app.currentUser;
     final properties = app.publicProperties;
     if (!_loadedRouteProperty) {
       _loadedRouteProperty = true;
@@ -118,6 +119,16 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
               label: 'Save lead',
               icon: Icons.save,
               onPressed: () async {
+                if (currentUser == null) {
+                  ScaffoldMessenger.of(context)
+                    ..clearSnackBars()
+                    ..showSnackBar(
+                      const SnackBar(
+                        content: Text('Sign in as an agent to save leads.'),
+                      ),
+                    );
+                  return;
+                }
                 if (!_formKey.currentState!.validate()) return;
                 await app.addLead(
                   clientName: _clientName.text.trim(),

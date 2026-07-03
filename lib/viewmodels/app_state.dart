@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../core/config/supabase_config.dart';
 import '../models/appointment_model.dart';
 import '../models/lead_model.dart';
 import '../models/property_model.dart';
@@ -27,8 +30,11 @@ class AppState extends ChangeNotifier {
   final StorageService storage;
 
   bool _seeded = false;
+  bool _initialized = false;
+  bool _isInitializingBackend = false;
   final Set<String> _favoritePropertyIds = {};
   UserModel? get currentUser => auth.currentUser;
+  bool get isInitializingBackend => _isInitializingBackend;
 
   List<PropertyModel> get agentProperties {
     final user = currentUser;
@@ -68,12 +74,38 @@ class AppState extends ChangeNotifier {
 
   Future<void> login(String email, String password) async {
     await auth.signInWithEmail(email: email, password: password);
+    await refreshProperties();
+    notifyListeners();
+  }
+
+  Future<void> registerAgent({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    await auth.registerAgent(
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+    );
     notifyListeners();
   }
 
   Future<void> signOut() async {
     await auth.signOut();
     notifyListeners();
+  }
+
+  Future<void> refreshProperties() async {
+    await properties.refreshPublicProperties();
+    final user = currentUser;
+    if (user != null) {
+      await properties.refreshAgentProperties(user.id);
+      await leads.refreshAgentLeads(user.id);
+      await appointments.refreshAgentAppointments(user.id);
+    }
   }
 
   Future<void> addProperty({
@@ -168,6 +200,7 @@ class AppState extends ChangeNotifier {
     required String notes,
   }) async {
     final user = currentUser;
+    if (SupabaseConfig.isConfigured && user == null) return;
     await leads.addLead(
       LeadModel(
         id: 'lead-${DateTime.now().microsecondsSinceEpoch}',
@@ -183,6 +216,9 @@ class AppState extends ChangeNotifier {
         createdAt: DateTime.now(),
       ),
     );
+    if (user != null) {
+      await leads.refreshAgentLeads(user.id);
+    }
     notifyListeners();
   }
 
@@ -193,6 +229,7 @@ class AppState extends ChangeNotifier {
     required String notes,
   }) async {
     final user = currentUser;
+    if (SupabaseConfig.isConfigured && user == null) return;
     await appointments.bookAppointment(
       AppointmentModel(
         id: 'appointment-${DateTime.now().microsecondsSinceEpoch}',
@@ -204,13 +241,20 @@ class AppState extends ChangeNotifier {
         notes: notes,
       ),
     );
+    if (user != null) {
+      await appointments.refreshAgentAppointments(user.id);
+    }
     notifyListeners();
   }
 
   void loadSeedData() {
     if (_seeded) return;
     _seeded = true;
-    auth.signInWithEmail(email: 'agent@bgnrealestate.co.za', password: 'demo');
+    if (SupabaseConfig.isConfigured) {
+      unawaited(startSignedOut());
+      return;
+    }
+
     properties.upsertProperty(
       PropertyModel(
         id: 'property-seed-1',
@@ -280,5 +324,22 @@ class AppState extends ChangeNotifier {
         notes: 'Prepare area report and comparable Atlantic Seaboard sales.',
       ),
     );
+  }
+
+  Future<void> startSignedOut() async {
+    if (_initialized) return;
+    _initialized = true;
+    _isInitializingBackend = true;
+    notifyListeners();
+    try {
+      await auth.signOut();
+      await properties.refreshPublicProperties();
+    } catch (error) {
+      debugPrint('Could not start signed-out Supabase session: $error');
+      await auth.signOut();
+    } finally {
+      _isInitializingBackend = false;
+    }
+    notifyListeners();
   }
 }

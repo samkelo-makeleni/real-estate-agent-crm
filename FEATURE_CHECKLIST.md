@@ -78,9 +78,9 @@ Status key:
 - [~] Secure user roles
   - Done: user role model exists.
   - Next: real auth and guarded routes.
-- [~] Firebase-backed real database/storage
-  - Done: Firebase Storage upload path is wired.
-  - Next: Firebase config and Firestore persistence.
+- [~] Supabase-backed real database/storage
+  - Done: Supabase Auth, Postgres services, and Storage upload path are wired.
+  - Next: realtime subscriptions, agency invitation flow, and production seed data.
 - [ ] Analytics dashboard
 - [ ] Offline-friendly property browsing
 - [ ] Branded share cards for listings
@@ -93,4 +93,4 @@ Status key:
 4. Recently viewed properties and search history.
 5. Rental application progress tracker.
 6. Document upload and applicant checklist.
-7. Firebase Firestore persistence for properties, leads, and appointments.
+7. Supabase realtime subscriptions for properties, leads, and appointments.

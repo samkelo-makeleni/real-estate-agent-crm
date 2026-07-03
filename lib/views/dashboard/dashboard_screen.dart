@@ -50,7 +50,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               DashboardMetricCard(
                 icon: Icons.people,
-                label: 'Enquiries',
+                label: 'Leads',
                 value: '${leads.length}',
                 onTap: () => Navigator.pushNamed(context, AppRoutes.leads),
               ),
@@ -78,7 +78,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           DashboardActionTile(
             icon: Icons.people,
-            title: 'Client Enquiries',
+            title: 'Client Leads',
             subtitle: 'Review and capture buyer, seller, and tenant leads',
             onTap: () => Navigator.pushNamed(context, AppRoutes.leads),
           ),
@@ -125,7 +125,7 @@ class _AgentDashboardHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Manage listings, enquiries, media, viewings, and rental application follow-ups from one place.',
+            'Manage listings, leads, media, viewings, and rental application follow-ups from one place.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Colors.white.withValues(alpha: 0.82),
               height: 1.4,
@@ -137,7 +137,7 @@ class _AgentDashboardHeader extends StatelessWidget {
             runSpacing: 10,
             children: [
               _AgentHeaderStat(label: 'Listings', value: '$properties'),
-              _AgentHeaderStat(label: 'Enquiries', value: '$leads'),
+              _AgentHeaderStat(label: 'Leads', value: '$leads'),
               _AgentHeaderStat(label: 'Viewings', value: '$appointments'),
             ],
           ),

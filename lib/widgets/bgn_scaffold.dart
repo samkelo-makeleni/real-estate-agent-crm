@@ -43,7 +43,7 @@ class BgnScaffold extends StatelessWidget {
               ),
         actions: [
           IconButton(
-            tooltip: 'Enquire',
+            tooltip: 'Add lead',
             onPressed: () => Navigator.pushNamed(context, AppRoutes.addLead),
             icon: const Icon(Icons.mark_email_unread),
           ),

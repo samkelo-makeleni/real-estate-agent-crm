@@ -32,6 +32,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   @override
   Widget build(BuildContext context) {
     final app = AppStateProvider.of(context);
+    final currentUser = app.currentUser;
     final properties = app.publicProperties;
     if (!_loadedRouteProperty) {
       _loadedRouteProperty = true;
@@ -59,15 +60,34 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _propertyId,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Property'),
               items: properties
                   .map(
                     (property) => DropdownMenuItem(
                       value: property.id,
-                      child: Text(property.title),
+                      child: Text(
+                        property.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   )
                   .toList(),
+              selectedItemBuilder: (context) {
+                return properties
+                    .map(
+                      (property) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          property.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList();
+              },
               onChanged: (value) => setState(() => _propertyId = value),
               validator: (value) => value == null ? 'Select a property' : null,
             ),
@@ -115,6 +135,16 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
               label: 'Book viewing',
               icon: Icons.event_available,
               onPressed: () async {
+                if (currentUser == null) {
+                  ScaffoldMessenger.of(context)
+                    ..clearSnackBars()
+                    ..showSnackBar(
+                      const SnackBar(
+                        content: Text('Sign in as an agent to book viewings.'),
+                      ),
+                    );
+                  return;
+                }
                 if (!_formKey.currentState!.validate()) return;
                 await app.bookAppointment(
                   propertyId: _propertyId!,

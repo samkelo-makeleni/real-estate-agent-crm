@@ -12,6 +12,7 @@ import '../../views/leads/leads_screen.dart';
 import '../../views/profile/profile_screen.dart';
 import '../../views/properties/add_property_screen.dart';
 import '../../views/properties/properties_screen.dart';
+import 'agent_route_guard.dart';
 import 'app_routes.dart';
 
 class AppRouter {
@@ -20,13 +21,17 @@ class AppRouter {
     AppRoutes.buyerDashboard: (_) => const BuyerDashboardScreen(),
     AppRoutes.buyerProperties: (_) => const BuyerPropertiesScreen(),
     AppRoutes.propertyDetails: (_) => const PropertyDetailsScreen(),
-    AppRoutes.dashboard: (_) => const DashboardScreen(),
-    AppRoutes.properties: (_) => const PropertiesScreen(),
-    AppRoutes.addProperty: (_) => const AddPropertyScreen(),
-    AppRoutes.leads: (_) => const LeadsScreen(),
-    AppRoutes.addLead: (_) => const AddLeadScreen(),
-    AppRoutes.appointments: (_) => const AppointmentsScreen(),
-    AppRoutes.bookAppointment: (_) => const AppointmentBookingScreen(),
-    AppRoutes.profile: (_) => const ProfileScreen(),
+    AppRoutes.dashboard: (_) => const AgentRouteGuard(child: DashboardScreen()),
+    AppRoutes.properties: (_) =>
+        const AgentRouteGuard(child: PropertiesScreen()),
+    AppRoutes.addProperty: (_) =>
+        const AgentRouteGuard(child: AddPropertyScreen()),
+    AppRoutes.leads: (_) => const AgentRouteGuard(child: LeadsScreen()),
+    AppRoutes.addLead: (_) => const AgentRouteGuard(child: AddLeadScreen()),
+    AppRoutes.appointments: (_) =>
+        const AgentRouteGuard(child: AppointmentsScreen()),
+    AppRoutes.bookAppointment: (_) =>
+        const AgentRouteGuard(child: AppointmentBookingScreen()),
+    AppRoutes.profile: (_) => const AgentRouteGuard(child: ProfileScreen()),
   };
 }

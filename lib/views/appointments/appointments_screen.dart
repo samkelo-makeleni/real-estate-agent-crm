@@ -35,7 +35,15 @@ class AppointmentsScreen extends StatelessWidget {
                 '${appointment.dateTime.hour.toString().padLeft(2, '0')}:'
                 '${appointment.dateTime.minute.toString().padLeft(2, '0')}',
               ),
-              trailing: Text(appointment.status.name),
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 96),
+                child: Text(
+                  appointment.status.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                ),
+              ),
             ),
           );
         },

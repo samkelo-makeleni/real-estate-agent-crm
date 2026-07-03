@@ -4,11 +4,9 @@ A Flutter real estate agent CRM and property listing MVP inspired by the BGN Rea
 
 ## Packages Added
 
-The project includes the dependency set needed for the planned Flutter + Firebase implementation:
+The project includes the dependency set needed for the Flutter + Supabase implementation:
 
-- `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
-- `firebase_messaging`, `firebase_analytics`, `firebase_app_check`, `cloud_functions`
-- `google_sign_in` for federated authentication
+- `supabase_flutter` for Auth, Postgres queries, and Storage
 - `provider` for MVVM-style state management
 - `go_router` for scalable app routing
 - `image_picker` and `file_picker` for property photo/document uploads
@@ -24,15 +22,15 @@ The project includes the dependency set needed for the planned Flutter + Firebas
 - `fl_chart` for dashboard reporting charts
 - `share_plus` for sharing property listings
 
-## Next Firebase Setup
+## Supabase Setup
 
-Run FlutterFire configuration after creating the Firebase project:
+Create a local `.env` from `.env.example`, then run Flutter with:
 
 ```sh
-flutterfire configure
+flutter run --dart-define-from-file=.env
 ```
 
-Then initialize Firebase in `lib/main.dart` before `runApp`.
+Apply the SQL migrations in `supabase/migrations` in timestamp order. See `docs/SUPABASE_SETUP.md` for the full setup flow.
 
 ## Verification
 

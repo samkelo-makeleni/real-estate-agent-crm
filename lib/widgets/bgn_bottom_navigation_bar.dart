@@ -18,6 +18,7 @@ class BgnBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = _selectedIndexFor(currentRoute);
+    final isCompact = MediaQuery.sizeOf(context).width < 380;
 
     return NavigationBar(
       selectedIndex: currentIndex,
@@ -26,12 +27,18 @@ class BgnBottomNavigationBar extends StatelessWidget {
         if (route == currentRoute) return;
         Navigator.pushReplacementNamed(context, route);
       },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-        NavigationDestination(icon: Icon(Icons.home_work), label: 'Properties'),
-        NavigationDestination(icon: Icon(Icons.people), label: 'Enquiries'),
-        NavigationDestination(icon: Icon(Icons.event), label: 'Viewings'),
-        NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+      destinations: [
+        const NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+        NavigationDestination(
+          icon: const Icon(Icons.home_work),
+          label: isCompact ? 'Homes' : 'Properties',
+        ),
+        const NavigationDestination(icon: Icon(Icons.people), label: 'Leads'),
+        NavigationDestination(
+          icon: const Icon(Icons.event),
+          label: isCompact ? 'Tours' : 'Viewings',
+        ),
+        const NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );
   }

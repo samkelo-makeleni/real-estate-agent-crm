@@ -15,7 +15,7 @@ class LeadsScreen extends StatelessWidget {
 
     return BgnScaffold(
       currentRoute: AppRoutes.leads,
-      title: 'Leads List',
+      title: 'Leads',
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.pushNamed(context, AppRoutes.addLead),
         icon: const Icon(Icons.person_add),
