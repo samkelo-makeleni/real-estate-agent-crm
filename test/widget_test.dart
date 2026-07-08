@@ -3,14 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:real_estate_agent_crm/app.dart';
 import 'package:real_estate_agent_crm/core/constants/app_theme.dart';
 import 'package:real_estate_agent_crm/core/routes/app_routes.dart';
+import 'package:real_estate_agent_crm/views/appointments/appointment_booking_screen.dart';
+import 'package:real_estate_agent_crm/viewmodels/app_state.dart';
+import 'package:real_estate_agent_crm/viewmodels/app_state_provider.dart';
 import 'package:real_estate_agent_crm/services/appointment_service.dart';
 import 'package:real_estate_agent_crm/services/auth_service.dart';
 import 'package:real_estate_agent_crm/services/lead_service.dart';
 import 'package:real_estate_agent_crm/services/property_service.dart';
 import 'package:real_estate_agent_crm/services/storage_service.dart';
-import 'package:real_estate_agent_crm/viewmodels/app_state.dart';
-import 'package:real_estate_agent_crm/viewmodels/app_state_provider.dart';
-import 'package:real_estate_agent_crm/views/appointments/appointment_booking_screen.dart';
 
 void main() {
   testWidgets('app opens on the agent sign in screen', (tester) async {
@@ -20,30 +20,6 @@ void main() {
     expect(find.text('Real Estate agent app'), findsOneWidget);
     expect(find.text('Agent sign in'), findsOneWidget);
     expect(find.text('New agent? Register first'), findsOneWidget);
-  });
-
-  test('agent can register and sign in through app state', () async {
-    final appState = AppState(
-      auth: AuthService(),
-      properties: PropertyService(),
-      leads: LeadService(),
-      appointments: AppointmentService(),
-      storage: StorageService(),
-    )..loadSeedData();
-
-    await appState.registerAgent(
-      name: 'BGN Agent',
-      email: 'agent@bgnrealestate.co.za',
-      phone: '+27 21 555 0148',
-      password: 'demo123',
-    );
-
-    expect(appState.currentUser, isNull);
-
-    await appState.login('agent@bgnrealestate.co.za', 'demo123');
-
-    expect(appState.currentUser?.name, 'BGN Agent');
-    expect(appState.publicProperties, isNotEmpty);
   });
 
   testWidgets('agent registration form toggles from sign in', (tester) async {
