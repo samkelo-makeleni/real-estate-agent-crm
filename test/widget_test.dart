@@ -9,6 +9,7 @@ import 'package:real_estate_agent_crm/viewmodels/app_state_provider.dart';
 import 'package:real_estate_agent_crm/services/appointment_service.dart';
 import 'package:real_estate_agent_crm/services/auth_service.dart';
 import 'package:real_estate_agent_crm/services/lead_service.dart';
+import 'package:real_estate_agent_crm/services/notification_service.dart';
 import 'package:real_estate_agent_crm/services/property_service.dart';
 import 'package:real_estate_agent_crm/services/storage_service.dart';
 
@@ -19,13 +20,15 @@ void main() {
     expect(find.text('BGN'), findsOneWidget);
     expect(find.text('Real Estate agent app'), findsOneWidget);
     expect(find.text('Agent sign in'), findsOneWidget);
-    expect(find.text('New agent? Register first'), findsOneWidget);
+    expect(find.text('Register'), findsOneWidget);
   });
 
-  testWidgets('agent registration form toggles from sign in', (tester) async {
+  testWidgets('agent registration form toggles from segmented control', (
+    tester,
+  ) async {
     await tester.pumpWidget(const BgnRealEstateApp());
 
-    await tester.tap(find.text('New agent? Register first'));
+    await tester.tap(find.text('Register'));
     await tester.pumpAndSettle();
 
     expect(find.text('Create agent account'), findsOneWidget);
@@ -45,6 +48,7 @@ void main() {
       properties: PropertyService(),
       leads: LeadService(),
       appointments: AppointmentService(),
+      notifications: NotificationService(),
       storage: StorageService(),
     )..loadSeedData();
 

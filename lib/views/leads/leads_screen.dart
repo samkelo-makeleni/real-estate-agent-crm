@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/routes/app_routes.dart';
+import '../../core/utils/currency_formatters.dart';
 import '../../models/lead_model.dart';
 import '../../viewmodels/app_state_provider.dart';
 import '../../widgets/bgn_scaffold.dart';
@@ -32,7 +33,7 @@ class LeadsScreen extends StatelessWidget {
               leading: const CircleAvatar(child: Icon(Icons.person)),
               title: Text(lead.clientName),
               subtitle: Text(
-                '${lead.preferredLocation} • R ${lead.budget.toStringAsFixed(0)}',
+                '${lead.preferredLocation} • ${CurrencyFormatters.rand(lead.budget)}',
               ),
               trailing: StatusChip(
                 label: _leadLabel(lead.status),

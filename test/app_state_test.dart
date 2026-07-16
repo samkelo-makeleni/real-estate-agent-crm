@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:real_estate_agent_crm/services/appointment_service.dart';
 import 'package:real_estate_agent_crm/services/auth_service.dart';
 import 'package:real_estate_agent_crm/services/lead_service.dart';
+import 'package:real_estate_agent_crm/services/notification_service.dart';
 import 'package:real_estate_agent_crm/services/property_service.dart';
 import 'package:real_estate_agent_crm/services/storage_service.dart';
 import 'package:real_estate_agent_crm/viewmodels/app_state.dart';
@@ -13,6 +14,7 @@ void main() {
       properties: PropertyService(),
       leads: LeadService(),
       appointments: AppointmentService(),
+      notifications: NotificationService(),
       storage: StorageService(),
     )..loadSeedData();
   }

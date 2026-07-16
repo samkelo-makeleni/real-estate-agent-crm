@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/supabase_config.dart';
@@ -7,9 +8,7 @@ class StorageService {
   static const _propertyMediaBucket = 'property-media';
 
   Future<List<String>> uploadPropertyImages(List<PlatformFile> files) async {
-    if (files.isEmpty) {
-      return ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6'];
-    }
+    if (files.isEmpty) return [];
 
     return _uploadPropertyMedia(
       files: files,
@@ -57,12 +56,16 @@ class StorageService {
       final path =
           '$userId/$folder/${DateTime.now().microsecondsSinceEpoch}_'
           '${_safeFileName(file.name)}';
-      await storage.uploadBinary(
-        path,
-        bytes,
-        fileOptions: FileOptions(contentType: _contentType(file.name)),
-      );
-      urls.add(storage.getPublicUrl(path));
+      try {
+        await storage.uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: _contentType(file.name)),
+        );
+        urls.add(storage.getPublicUrl(path));
+      } on StorageException catch (error) {
+        debugPrint('Could not upload ${file.name} to property media: $error');
+      }
     }
 
     return urls;

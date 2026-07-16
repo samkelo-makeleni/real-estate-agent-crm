@@ -59,7 +59,31 @@ class AppointmentService {
         .select()
         .single();
 
-    return _appointmentFromSupabase(row);
+    final savedAppointment = _appointmentFromSupabase(row);
+    await _upsertViewingReminderInSupabase(
+      agencyId: profile['agency_id'] as String,
+      appointment: savedAppointment,
+    );
+    return savedAppointment;
+  }
+
+  Future<void> _upsertViewingReminderInSupabase({
+    required String agencyId,
+    required AppointmentModel appointment,
+  }) async {
+    final reminderFor = appointment.dateTime.subtract(
+      const Duration(minutes: 60),
+    );
+    if (!reminderFor.isAfter(DateTime.now())) return;
+
+    await SupabaseConfig.client!.from('appointment_reminders').upsert({
+      'agency_id': agencyId,
+      'appointment_id': appointment.id,
+      'agent_id': appointment.agentId,
+      'reminder_for': reminderFor.toIso8601String(),
+      'channel': 'push',
+      'status': 'scheduled',
+    }, onConflict: 'appointment_id,agent_id');
   }
 
   void _mergeAppointments(Iterable<AppointmentModel> appointments) {

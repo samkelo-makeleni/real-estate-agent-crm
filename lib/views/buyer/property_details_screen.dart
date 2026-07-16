@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_theme.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/utils/currency_formatters.dart';
 import '../../models/property_model.dart';
 import '../../viewmodels/app_state_provider.dart';
 import '../../widgets/custom_button.dart';
@@ -84,7 +85,7 @@ class PropertyDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'R ${property.price.toStringAsFixed(0)}',
+            CurrencyFormatters.rand(property.price),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: AppTheme.navy,
               fontWeight: FontWeight.w900,

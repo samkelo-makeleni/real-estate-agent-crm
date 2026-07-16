@@ -6,6 +6,7 @@ import 'core/routes/app_routes.dart';
 import 'services/appointment_service.dart';
 import 'services/auth_service.dart';
 import 'services/lead_service.dart';
+import 'services/notification_service.dart';
 import 'services/property_service.dart';
 import 'services/storage_service.dart';
 import 'viewmodels/app_state.dart';
@@ -22,6 +23,7 @@ class BgnRealEstateApp extends StatelessWidget {
         properties: PropertyService(),
         leads: LeadService(),
         appointments: AppointmentService(),
+        notifications: NotificationService(),
         storage: StorageService(),
       )..loadSeedData(),
       child: MaterialApp(

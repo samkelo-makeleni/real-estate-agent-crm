@@ -176,23 +176,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       icon: const Icon(Icons.home_work),
                       label: const Text('Browse properties as buyer'),
                     ),
-                    TextButton.icon(
-                      onPressed: _isSubmitting
-                          ? null
-                          : () {
-                              setState(() {
-                                _isRegistering = !_isRegistering;
-                              });
-                            },
-                      icon: Icon(
-                        _isRegistering ? Icons.login : Icons.person_add,
-                      ),
-                      label: Text(
-                        _isRegistering
-                            ? 'Already registered? Sign in'
-                            : 'New agent? Register first',
-                      ),
-                    ),
                   ],
                 ),
               ),

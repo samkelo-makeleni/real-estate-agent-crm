@@ -11,6 +11,7 @@ import '../models/user_model.dart';
 import '../services/appointment_service.dart';
 import '../services/auth_service.dart';
 import '../services/lead_service.dart';
+import '../services/notification_service.dart';
 import '../services/property_service.dart';
 import '../services/storage_service.dart';
 
@@ -20,6 +21,7 @@ class AppState extends ChangeNotifier {
     required this.properties,
     required this.leads,
     required this.appointments,
+    required this.notifications,
     required this.storage,
   });
 
@@ -27,14 +29,21 @@ class AppState extends ChangeNotifier {
   final PropertyService properties;
   final LeadService leads;
   final AppointmentService appointments;
+  final NotificationService notifications;
   final StorageService storage;
 
   bool _seeded = false;
   bool _initialized = false;
   bool _isInitializingBackend = false;
+  bool _notificationsEnabled = false;
+  final List<UserModel> _adminAgents = [];
   final Set<String> _favoritePropertyIds = {};
   UserModel? get currentUser => auth.currentUser;
   bool get isInitializingBackend => _isInitializingBackend;
+  bool get notificationsEnabled => _notificationsEnabled;
+  int get viewingReminderMinutesBefore =>
+      NotificationService.viewingReminderMinutesBefore;
+  List<UserModel> get adminAgents => List.unmodifiable(_adminAgents);
 
   List<PropertyModel> get agentProperties {
     final user = currentUser;
@@ -75,6 +84,8 @@ class AppState extends ChangeNotifier {
   Future<void> login(String email, String password) async {
     await auth.signInWithEmail(email: email, password: password);
     await refreshProperties();
+    await _loadRemoteNotificationPreference();
+    await _rescheduleViewingReminders();
     notifyListeners();
   }
 
@@ -95,6 +106,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> signOut() async {
     await auth.signOut();
+    await notifications.cancelViewingReminders();
     notifyListeners();
   }
 
@@ -105,7 +117,54 @@ class AppState extends ChangeNotifier {
       await properties.refreshAgentProperties(user.id);
       await leads.refreshAgentLeads(user.id);
       await appointments.refreshAgentAppointments(user.id);
+      await _rescheduleViewingReminders();
     }
+  }
+
+  Future<bool> setPushNotificationsEnabled(bool enabled) async {
+    final isEnabled = await notifications.setEnabled(
+      enabled,
+      appointments: agentAppointments,
+    );
+    _notificationsEnabled = isEnabled;
+    await _saveRemoteNotificationPreference(isEnabled);
+    notifyListeners();
+    return isEnabled;
+  }
+
+  Future<void> refreshAdminAgents() async {
+    final user = currentUser;
+    if (user?.role != UserRole.admin) {
+      _adminAgents.clear();
+      notifyListeners();
+      return;
+    }
+
+    final agents = await auth.listAgencyAgents();
+    _adminAgents
+      ..clear()
+      ..addAll(agents);
+    notifyListeners();
+  }
+
+  Future<void> updateAgentRole({
+    required String agentId,
+    required UserRole role,
+  }) async {
+    final user = currentUser;
+    if (user?.role != UserRole.admin) return;
+
+    final updatedAgent = await auth.updateAgentRole(
+      agentId: agentId,
+      role: role,
+    );
+    final index = _adminAgents.indexWhere((agent) => agent.id == agentId);
+    if (index == -1) {
+      _adminAgents.add(updatedAgent);
+    } else {
+      _adminAgents[index] = updatedAgent;
+    }
+    notifyListeners();
   }
 
   Future<void> addProperty({
@@ -244,12 +303,14 @@ class AppState extends ChangeNotifier {
     if (user != null) {
       await appointments.refreshAgentAppointments(user.id);
     }
+    await _rescheduleViewingReminders();
     notifyListeners();
   }
 
   void loadSeedData() {
     if (_seeded) return;
     _seeded = true;
+    unawaited(_initializeNotifications());
     if (SupabaseConfig.isConfigured) {
       unawaited(startSignedOut());
       return;
@@ -341,5 +402,57 @@ class AppState extends ChangeNotifier {
       _isInitializingBackend = false;
     }
     notifyListeners();
+  }
+
+  Future<void> _initializeNotifications() async {
+    await notifications.initialize();
+    _notificationsEnabled = notifications.enabled;
+    notifyListeners();
+  }
+
+  Future<void> _rescheduleViewingReminders() async {
+    await notifications.scheduleViewingReminders(agentAppointments);
+  }
+
+  Future<void> _loadRemoteNotificationPreference() async {
+    final user = currentUser;
+    final client = SupabaseConfig.client;
+    if (user == null || client == null) return;
+
+    try {
+      final row = await client
+          .from('profiles')
+          .select('push_notifications_enabled, viewing_reminder_minutes_before')
+          .eq('id', user.id)
+          .maybeSingle();
+      final remoteEnabled = row?['push_notifications_enabled'] as bool?;
+      if (remoteEnabled != null) {
+        _notificationsEnabled = await notifications.setEnabled(
+          remoteEnabled,
+          appointments: agentAppointments,
+        );
+      }
+    } catch (error) {
+      debugPrint('Could not load notification preferences: $error');
+    }
+  }
+
+  Future<void> _saveRemoteNotificationPreference(bool enabled) async {
+    final user = currentUser;
+    final client = SupabaseConfig.client;
+    if (user == null || client == null) return;
+
+    try {
+      await client
+          .from('profiles')
+          .update({
+            'push_notifications_enabled': enabled,
+            'viewing_reminder_minutes_before':
+                NotificationService.viewingReminderMinutesBefore,
+          })
+          .eq('id', user.id);
+    } catch (error) {
+      debugPrint('Could not save notification preferences: $error');
+    }
   }
 }

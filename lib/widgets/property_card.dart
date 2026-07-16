@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/utils/currency_formatters.dart';
 import '../models/property_model.dart';
 import 'status_chip.dart';
 
@@ -43,7 +44,7 @@ class PropertyCard extends StatelessWidget {
                         Text(property.location),
                         const SizedBox(height: 8),
                         Text(
-                          'R ${property.price.toStringAsFixed(0)}',
+                          CurrencyFormatters.rand(property.price),
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.primary,

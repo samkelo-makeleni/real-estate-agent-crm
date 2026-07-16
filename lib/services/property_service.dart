@@ -1,6 +1,15 @@
 import '../core/config/supabase_config.dart';
 import '../models/property_model.dart';
 
+class PropertyException implements Exception {
+  const PropertyException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class PropertyService {
   final List<PropertyModel> _properties = [];
 
@@ -76,9 +85,15 @@ class PropertyService {
         .select('agency_id')
         .eq('id', property.agentId)
         .single();
+    final agencyId = await _agencyIdForProfile(profile);
+    if (agencyId == null || agencyId.isEmpty) {
+      throw const PropertyException(
+        'Your agent profile is missing an agency. Apply the agency repair migration, then try publishing again.',
+      );
+    }
 
     final values = {
-      'agency_id': profile['agency_id'],
+      'agency_id': agencyId,
       'agent_id': property.agentId,
       'title': property.title,
       'price': property.price,
@@ -107,6 +122,24 @@ class PropertyService {
               .single();
 
     return _propertyFromSupabase(row);
+  }
+
+  Future<String?> _agencyIdForProfile(Map<String, dynamic> profile) async {
+    final existingAgencyId = profile['agency_id'] as String?;
+    if (existingAgencyId != null && existingAgencyId.isNotEmpty) {
+      return existingAgencyId;
+    }
+
+    try {
+      final repairedAgencyId = await SupabaseConfig.client!.rpc(
+        'ensure_current_agent_agency',
+      );
+      return repairedAgencyId as String?;
+    } catch (error) {
+      throw PropertyException(
+        'Your agent profile is missing an agency, and the automatic repair failed: $error',
+      );
+    }
   }
 
   void _mergeProperties(Iterable<PropertyModel> properties) {

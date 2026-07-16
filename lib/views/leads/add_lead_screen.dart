@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/routes/app_routes.dart';
+import '../../core/utils/currency_formatters.dart';
 import '../../viewmodels/app_state_provider.dart';
 import '../../widgets/bgn_scaffold.dart';
 import '../../widgets/custom_button.dart';
@@ -97,7 +98,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             const SizedBox(height: 12),
             CustomTextField(
               controller: _budget,
-              label: 'Budget',
+              label: 'Budget (ZAR)',
               icon: Icons.savings,
               keyboardType: TextInputType.number,
             ),
@@ -135,7 +136,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                   phone: _phone.text.trim(),
                   email: _email.text.trim(),
                   propertyId: _propertyId!,
-                  budget: double.tryParse(_budget.text) ?? 0,
+                  budget: CurrencyFormatters.parseRand(_budget.text),
                   preferredLocation: _preferredLocation.text.trim(),
                   notes: _notes.text.trim(),
                 );

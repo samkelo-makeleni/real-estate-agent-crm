@@ -23,6 +23,26 @@ class AuthService {
 
   UserModel? get currentUser => _currentUser;
 
+  Future<List<UserModel>> listAgencyAgents() async {
+    if (SupabaseConfig.isConfigured) {
+      return _listAgencyAgentsFromSupabase();
+    }
+
+    return _agentsByEmail.values.map((account) => account.user).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  Future<UserModel> updateAgentRole({
+    required String agentId,
+    required UserRole role,
+  }) async {
+    if (SupabaseConfig.isConfigured) {
+      return _updateAgentRoleInSupabase(agentId: agentId, role: role);
+    }
+
+    return _updateAgentRoleInMemory(agentId: agentId, role: role);
+  }
+
   Future<UserModel> registerAgent({
     required String name,
     required String email,
@@ -165,6 +185,43 @@ class AuthService {
     );
   }
 
+  Future<List<UserModel>> _listAgencyAgentsFromSupabase() async {
+    final client = SupabaseConfig.client;
+    if (client == null) {
+      throw const AuthException('Supabase is not configured.');
+    }
+
+    final rows = await client
+        .from('profiles')
+        .select('id, full_name, email, phone, role, created_at')
+        .order('full_name');
+
+    return rows.map(_userFromSupabaseProfile).toList();
+  }
+
+  Future<UserModel> _updateAgentRoleInSupabase({
+    required String agentId,
+    required UserRole role,
+  }) async {
+    final client = SupabaseConfig.client;
+    if (client == null) {
+      throw const AuthException('Supabase is not configured.');
+    }
+
+    final row = await client
+        .from('profiles')
+        .update({'role': _roleToSupabase(role)})
+        .eq('id', agentId)
+        .select('id, full_name, email, phone, role, created_at')
+        .single();
+
+    final updatedUser = _userFromSupabaseProfile(row);
+    if (_currentUser?.id == updatedUser.id) {
+      _currentUser = updatedUser;
+    }
+    return updatedUser;
+  }
+
   Future<UserModel> _registerAgentInMemory({
     required String name,
     required String email,
@@ -213,6 +270,41 @@ class AuthService {
     return _currentUser!;
   }
 
+  UserModel _updateAgentRoleInMemory({
+    required String agentId,
+    required UserRole role,
+  }) {
+    final entry = _agentsByEmail.entries
+        .where((entry) => entry.value.user.id == agentId)
+        .firstOrNull;
+    if (entry == null) {
+      throw const AuthException('Agent profile was not found.');
+    }
+
+    final updatedUser = entry.value.user.copyWith(role: role);
+    _agentsByEmail[entry.key] = _AgentAccount(
+      user: updatedUser,
+      password: entry.value.password,
+    );
+    if (_currentUser?.id == updatedUser.id) {
+      _currentUser = updatedUser;
+    }
+    return updatedUser;
+  }
+
+  UserModel _userFromSupabaseProfile(Map<String, dynamic> row) {
+    return UserModel(
+      id: row['id'] as String,
+      name: row['full_name'] as String? ?? 'Agent',
+      email: row['email'] as String? ?? '',
+      role: _roleFromSupabase(row['role'] as String?),
+      phone: row['phone'] as String? ?? '',
+      createdAt:
+          DateTime.tryParse(row['created_at'] as String? ?? '') ??
+          DateTime.now(),
+    );
+  }
+
   UserRole _roleFromSupabase(String? role) {
     switch (role) {
       case 'admin':
@@ -223,6 +315,14 @@ class AuthService {
       default:
         return UserRole.agent;
     }
+  }
+
+  String _roleToSupabase(UserRole role) {
+    return switch (role) {
+      UserRole.admin => 'admin',
+      UserRole.agent => 'agent',
+      UserRole.viewer => 'viewer',
+    };
   }
 
   String _friendlyAuthError(Object error) {

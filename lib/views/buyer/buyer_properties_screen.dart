@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_theme.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/utils/currency_formatters.dart';
 import '../../models/property_model.dart';
 import '../../viewmodels/app_state_provider.dart';
 import '../../widgets/bgn_logo.dart';
@@ -160,7 +161,7 @@ class _BuyerPropertiesScreenState extends State<BuyerPropertiesScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Price up to R ${_priceRange.end.toStringAsFixed(0)}',
+                    'Price up to ${CurrencyFormatters.rand(_priceRange.end)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   RangeSlider(
@@ -169,8 +170,8 @@ class _BuyerPropertiesScreenState extends State<BuyerPropertiesScreen> {
                     divisions: 40,
                     values: _priceRange,
                     labels: RangeLabels(
-                      'R ${_priceRange.start.toStringAsFixed(0)}',
-                      'R ${_priceRange.end.toStringAsFixed(0)}',
+                      CurrencyFormatters.rand(_priceRange.start),
+                      CurrencyFormatters.rand(_priceRange.end),
                     ),
                     onChanged: (value) {
                       setState(() => _priceRange = value);

@@ -11,4 +11,5 @@ class AppRoutes {
   static const appointments = '/appointments';
   static const bookAppointment = '/appointments/book';
   static const profile = '/profile';
+  static const adminAgents = '/profile/admin-agents';
 }

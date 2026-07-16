@@ -50,11 +50,27 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Card(
             child: SwitchListTile(
-              value: true,
-              onChanged: (_) {},
+              value: app.notificationsEnabled,
+              onChanged: (enabled) async {
+                final accepted = await app.setPushNotificationsEnabled(enabled);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        accepted
+                            ? 'Viewing reminders are enabled.'
+                            : 'Viewing reminders are disabled.',
+                      ),
+                    ),
+                  );
+              },
               secondary: const Icon(Icons.notifications_active),
               title: const Text('Push notifications'),
-              subtitle: const Text('New enquiries, bookings, and assignments'),
+              subtitle: Text(
+                'Viewing reminders ${app.viewingReminderMinutesBefore} minutes before appointments',
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -64,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
               title: const Text('Admin Agent Management'),
               subtitle: const Text('Ready for admin role workflows'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, AppRoutes.adminAgents),
             ),
           ),
           const SizedBox(height: 18),

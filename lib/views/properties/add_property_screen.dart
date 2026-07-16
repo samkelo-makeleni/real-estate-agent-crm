@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../core/routes/app_routes.dart';
+import '../../core/utils/currency_formatters.dart';
 import '../../models/property_model.dart';
 import '../../viewmodels/app_state.dart';
 import '../../viewmodels/app_state_provider.dart';
@@ -33,6 +34,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   PropertyStatus _status = PropertyStatus.available;
   String? _editingPropertyId;
   bool _loadedEditingProperty = false;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -68,8 +70,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             const SizedBox(height: 12),
             CustomTextField(
               controller: _price,
-              label: 'Price',
-              icon: Icons.attach_money,
+              label: 'Price (ZAR)',
+              icon: Icons.payments,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
@@ -162,43 +164,63 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             CustomButton(
               label: isEditing ? 'Save changes' : 'Publish property',
               icon: isEditing ? Icons.save : Icons.cloud_upload,
-              onPressed: () async {
-                if (!_formKey.currentState!.validate()) return;
-                if (isEditing) {
-                  await app.updateProperty(
-                    id: _editingPropertyId!,
-                    title: _title.text.trim(),
-                    price: double.tryParse(_price.text) ?? 0,
-                    location: _location.text.trim(),
-                    type: _type,
-                    bedrooms: int.tryParse(_bedrooms.text) ?? 0,
-                    bathrooms: int.tryParse(_bathrooms.text) ?? 0,
-                    parking: int.tryParse(_parking.text) ?? 0,
-                    description: _description.text.trim(),
-                    status: _status,
-                    existingImageUrls: _existingImageUrls,
-                    existingVideoUrls: _existingVideoUrls,
-                    imageFiles: _selectedImages,
-                    videoFiles: _selectedVideos,
-                  );
-                } else {
-                  await app.addProperty(
-                    title: _title.text.trim(),
-                    price: double.tryParse(_price.text) ?? 0,
-                    location: _location.text.trim(),
-                    type: _type,
-                    bedrooms: int.tryParse(_bedrooms.text) ?? 0,
-                    bathrooms: int.tryParse(_bathrooms.text) ?? 0,
-                    parking: int.tryParse(_parking.text) ?? 0,
-                    description: _description.text.trim(),
-                    status: _status,
-                    imageFiles: _selectedImages,
-                    videoFiles: _selectedVideos,
-                  );
-                }
-                if (!context.mounted) return;
-                Navigator.pop(context);
-              },
+              onPressed: _isSubmitting
+                  ? null
+                  : () async {
+                      if (!_formKey.currentState!.validate()) return;
+                      setState(() => _isSubmitting = true);
+                      try {
+                        if (isEditing) {
+                          await app.updateProperty(
+                            id: _editingPropertyId!,
+                            title: _title.text.trim(),
+                            price: CurrencyFormatters.parseRand(_price.text),
+                            location: _location.text.trim(),
+                            type: _type,
+                            bedrooms: int.tryParse(_bedrooms.text) ?? 0,
+                            bathrooms: int.tryParse(_bathrooms.text) ?? 0,
+                            parking: int.tryParse(_parking.text) ?? 0,
+                            description: _description.text.trim(),
+                            status: _status,
+                            existingImageUrls: _existingImageUrls,
+                            existingVideoUrls: _existingVideoUrls,
+                            imageFiles: _selectedImages,
+                            videoFiles: _selectedVideos,
+                          );
+                        } else {
+                          await app.addProperty(
+                            title: _title.text.trim(),
+                            price: CurrencyFormatters.parseRand(_price.text),
+                            location: _location.text.trim(),
+                            type: _type,
+                            bedrooms: int.tryParse(_bedrooms.text) ?? 0,
+                            bathrooms: int.tryParse(_bathrooms.text) ?? 0,
+                            parking: int.tryParse(_parking.text) ?? 0,
+                            description: _description.text.trim(),
+                            status: _status,
+                            imageFiles: _selectedImages,
+                            videoFiles: _selectedVideos,
+                          );
+                        }
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                      } catch (error) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context)
+                          ..clearSnackBars()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Could not ${isEditing ? 'save' : 'publish'} property: $error',
+                              ),
+                            ),
+                          );
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSubmitting = false);
+                        }
+                      }
+                    },
             ),
           ],
         ),
@@ -235,7 +257,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     if (property == null) return;
     _editingPropertyId = property.id;
     _title.text = property.title;
-    _price.text = property.price.toStringAsFixed(0);
+    _price.text = CurrencyFormatters.randInput(property.price);
     _location.text = property.location;
     _bedrooms.text = property.bedrooms.toString();
     _bathrooms.text = property.bathrooms.toString();

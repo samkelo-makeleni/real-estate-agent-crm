@@ -10,6 +10,7 @@ import '../../views/dashboard/dashboard_screen.dart';
 import '../../views/leads/add_lead_screen.dart';
 import '../../views/leads/leads_screen.dart';
 import '../../views/profile/profile_screen.dart';
+import '../../views/profile/admin_agent_management_screen.dart';
 import '../../views/properties/add_property_screen.dart';
 import '../../views/properties/properties_screen.dart';
 import 'agent_route_guard.dart';
@@ -33,5 +34,7 @@ class AppRouter {
     AppRoutes.bookAppointment: (_) =>
         const AgentRouteGuard(child: AppointmentBookingScreen()),
     AppRoutes.profile: (_) => const AgentRouteGuard(child: ProfileScreen()),
+    AppRoutes.adminAgents: (_) =>
+        const AgentRouteGuard(child: AdminAgentManagementScreen()),
   };
 }
